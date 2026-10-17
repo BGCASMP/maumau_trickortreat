@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎃 萬聖節環遊世界 Trick or Treat 語音大挑戰 👻</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Fredoka', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #3b0764 0%, #1e1b4b 60%, #090514 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 浮動背景裝飾動畫 */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .float-anim {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        .float-anim-delayed {
+            animation: floatSlow 5s ease-in-out 2s infinite;
+        }
+
+        /* 遊戲按鈕立體糖果質感 */
+        .btn-halloween {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 0 #9a3412, 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .btn-halloween:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #9a3412, 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .btn-purple {
+            box-shadow: 0 6px 0 #4c1d95, 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .btn-purple:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #4c1d95, 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .btn-green {
+            box-shadow: 0 6px 0 #15803d, 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .btn-green:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #15803d, 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        /* 麥克風錄音脈衝動畫 */
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .recording-pulse {
+            animation: pulseRing 1.2s infinite;
+        }
+
+        /* 輪盤外框發光效果 */
+        .wheel-glow {
+            box-shadow: 0 0 35px rgba(249, 115, 22, 0.6), inset 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        /* 糖果掉落特效 */
+        .candy-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            font-size: 2rem;
+            animation: fallDown 2.5s ease-in forwards;
+        }
+        @keyframes fallDown {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between relative select-none">
+
+    <!-- 背景萬聖節裝飾 -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-25">
+        <div class="absolute top-10 left-8 text-5xl float-anim">🦇</div>
+        <div class="absolute top-24 right-12 text-6xl float-anim-delayed">👻</div>
+        <div class="absolute bottom-20 left-12 text-5xl float-anim-delayed">🕷️</div>
+        <div class="absolute bottom-16 right-10 text-6xl float-anim">🎃</div>
+    </div>
+
+    <!-- 頂部標題與糖果計分板 -->
+    <header class="relative z-10 w-full max-w-6xl mx-auto pt-4 px-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <span class="text-4xl sm:text-5xl">🎃</span>
+            <div>
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-500 drop-shadow">
+                    萬聖節世界語言大輪盤
+                </h1>
+                <p class="text-xs sm:text-sm text-purple-200">轉動輪盤，跟住讀出唔同國家嘅「Trick or Treat」贏糖果啦！</p>
+            </div>
+        </div>
+
+        <!-- 已挑戰人次與糖果收集籃 -->
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- 新增：已挑戰人次統計 -->
+            <div class="flex items-center gap-3 bg-indigo-950/90 border-2 border-purple-400/70 px-4 py-2 rounded-2xl shadow-lg">
+                <div class="text-3xl">🧙‍♀️</div>
+                <div>
+                    <div class="text-xs text-purple-200 font-bold">已挑戰人次</div>
+                    <div class="text-2xl font-black text-cyan-300"><span id="challengerCount">0</span> 人次</div>
+                </div>
+            </div>
+
+            <!-- 糖果收集籃 -->
+            <div class="flex items-center gap-3 bg-purple-950/90 border-2 border-orange-400/70 px-4 py-2 rounded-2xl shadow-lg">
+                <div class="text-3xl animate-bounce">🍬</div>
+                <div>
+                    <div class="text-xs text-orange-200 font-bold">已收集萬聖節糖果</div>
+                    <div class="text-2xl font-black text-yellow-300"><span id="candyCount">0</span> 粒</div>
+                </div>
+                <button id="soundToggleBtn" onclick="toggleSoundEffects()" class="ml-2 w-10 h-10 rounded-xl bg-purple-800 hover:bg-purple-700 flex items-center justify-center text-yellow-300 transition" title="開關音效">
+                    <i id="soundIcon" class="fas fa-volume-up text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主遊戲區 -->
+    <main class="relative z-10 w-full max-w-6xl mx-auto px-4 py-4 flex-1 flex flex-col lg:flex-row items-center justify-center gap-8">
+        
+        <!-- 左側：萬聖節幸運輪盤 -->
+        <div class="w-full lg:w-1/2 flex flex-col items-center justify-center">
+            <div class="relative w-full max-w-[360px] sm:max-w-[420px] aspect-square flex items-center justify-center">
+                
+                <!-- 頂部指針 (巫婆帽造型/南瓜指針) -->
+                <div id="wheelPointer" class="absolute -top-5 z-30 filter drop-shadow-[0_6px_6px_rgba(0,0,0,0.6)] transition-transform duration-75">
+                    <svg width="56" height="64" viewBox="0 0 56 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M28 60L6 16C4 10 9 4 16 4H40C47 4 52 10 50 16L28 60Z" fill="#FFEDD5" stroke="#EA580C" stroke-width="5"/>
+                        <path d="M28 52L12 18H44L28 52Z" fill="#F97316"/>
+                        <circle cx="28" cy="18" r="6" fill="#FEF08A"/>
+                    </svg>
+                </div>
+
+                <!-- 輪盤畫布外框 -->
+                <div class="w-full h-full rounded-full p-3 bg-gradient-to-b from-orange-400 via-orange-600 to-amber-900 wheel-glow relative flex items-center justify-center">
+                    <canvas id="wheelCanvas" class="w-full h-full rounded-full cursor-pointer" onclick="spinWheel()"></canvas>
+                    
+                    <!-- 輪盤中心南瓜按鈕 -->
+                    <button id="centerSpinBtn" onclick="spinWheel()" class="absolute z-20 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-white shadow-[0_0_20px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center transform hover:scale-105 active:scale-95 transition">
+                        <span class="text-2xl sm:text-3xl leading-none">🎃</span>
+                        <span class="text-xs sm:text-sm font-black text-white drop-shadow">GO!</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 轉動輪盤大按鈕 (放置在輪盤下方置中) -->
+            <div class="mt-6 w-full max-w-xs flex flex-col items-center">
+                <button id="spinBtn" onclick="spinWheel()" class="btn-halloween w-full py-4 px-8 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-black text-xl sm:text-2xl tracking-wider flex items-center justify-center gap-3 border-2 border-yellow-200">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>下一位！轉輪盤抽語言</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側：互動挑戰卡片區 -->
+        <div class="w-full lg:w-1/2 flex flex-col">
+            <div class="bg-purple-950/85 backdrop-blur-md border-4 border-purple-500/60 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+                
+                <!-- 頂部步驟提示 -->
+                <div class="flex items-center justify-between border-b border-purple-700/60 pb-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full bg-orange-500 text-xs font-black uppercase tracking-wider">挑戰任務卡</span>
+                        <span id="statusBadge" class="text-sm text-purple-200 font-bold">請先按左邊按鈕轉動輪盤！</span>
+                    </div>
+                    <button onclick="pickRandomDirectly()" class="text-xs text-purple-300 hover:text-yellow-300 underline">
+                        直接隨機換一個
+                    </button>
+                </div>
+
+                <!-- 抽出的國家與語言展示區 -->
+                <div id="resultDisplay" class="text-center py-4 px-3 rounded-2xl bg-indigo-950/90 border-2 border-indigo-700/80 mb-5 transition-all">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <span id="langFlag" class="text-5xl sm:text-6xl filter drop-shadow">🌍</span>
+                        <div class="text-left">
+                            <div id="langCountry" class="text-sm text-orange-300 font-bold">準備出發環遊世界</div>
+                            <div id="langName" class="text-2xl sm:text-3xl font-black text-white">撳「轉動輪盤」開始！</div>
+                        </div>
+                    </div>
+
+                    <!-- 該國語言的 Trick or Treat 大字 -->
+                    <div class="my-4 p-4 rounded-xl bg-purple-900/70 border border-purple-500/40">
+                        <div class="text-xs text-purple-300 mb-1">呢個國家嘅「Trick or Treat」係咁講：</div>
+                        <div id="langPhrase" class="text-2xl sm:text-4xl font-black text-yellow-300 tracking-wide break-words leading-snug">
+                            🎃 ? ? ? 🎃
+                        </div>
+                        <div id="langRoman" class="text-sm sm:text-base text-orange-200 font-semibold mt-2">
+                            羅馬拼音：---
+                        </div>
+                        <div id="langTip" class="inline-block mt-2 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-bold">
+                            💡 廣東話諧音小貼士：轉動輪盤後顯示
+                        </div>
+                    </div>
+
+                    <!-- 語速選擇與操作按鈕列 -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+                        <!-- 步驟 1：聽發音按鈕 -->
+                        <button id="listenBtn" onclick="playTargetLanguageAudio(false)" disabled class="btn-purple w-full sm:w-1/2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-black text-base sm:text-lg flex items-center justify-center gap-2 border-2 border-purple-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i id="listenIcon" class="fas fa-volume-up text-xl"></i>
+                            <span id="listenBtnText">1. 聽標準讀法</span>
+                        </button>
+
+                        <!-- 慢速聽一次按鈕 -->
+                        <button id="listenSlowBtn" onclick="playTargetLanguageAudio(true)" disabled class="btn-purple w-full sm:w-auto py-3.5 px-4 rounded-2xl bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-1.5 border-2 border-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed" title="慢速聽清楚每個音">
+                            <span>🐢</span>
+                            <span>慢速讀</span>
+                        </button>
+
+                        <!-- 步驟 2：收音挑戰按鈕 -->
+                        <button id="recordBtn" onclick="toggleRecording()" disabled class="btn-green w-full sm:w-1/2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-black text-base sm:text-lg flex items-center justify-center gap-2 border-2 border-green-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i id="recordIcon" class="fas fa-microphone text-xl"></i>
+                            <span id="recordBtnText">2. 撳住/點擊跟讀</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 收音與準確度評分回饋區 -->
+                <div id="feedbackBox" class="rounded-2xl bg-slate-900/90 border-2 border-slate-700 p-4 transition-all">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        
+                        <!-- 準確度百分比圓環與星星 -->
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-20 h-20 flex items-center justify-center rounded-full bg-purple-950 border-4 border-orange-400 shadow-inner">
+                                <div class="text-center">
+                                    <span id="scoreNumber" class="text-2xl font-black text-yellow-300">--</span>
+                                    <span class="text-xs text-orange-200 block">% 準確度</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div id="starRating" class="text-2xl tracking-widest text-slate-600 mb-1">
+                                    ★★★
+                                </div>
+                                <div id="feedbackTitle" class="text-base sm:text-lg font-black text-white">
+                                    聽完讀音後，撳「跟讀」大聲講出嚟！
+                                </div>
+                                <div id="heardTranscript" class="text-xs sm:text-sm text-purple-300 mt-0.5">
+                                    🎙️ 收音內容：等待小朋友發音...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 重播自己把聲 / 家長輔助按鈕 -->
+                        <div class="flex flex-row sm:flex-col gap-2 w-full sm:w-auto justify-end">
+                            <button id="replayChildBtn" onclick="replayRecordedVoice()" class="hidden px-3 py-2 rounded-xl bg-purple-800 hover:bg-purple-700 text-xs font-bold text-yellow-200 flex items-center justify-center gap-1.5 border border-purple-500">
+                                <i class="fas fa-play"></i> 聽返自己把聲
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 進度條視覺化 -->
+                    <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden mt-3 border border-slate-700">
+                        <div id="scoreBar" class="h-full w-0 bg-gradient-to-r from-orange-500 via-yellow-400 to-green-400 transition-all duration-700 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- 底部小幫手提示（如果小朋友太細個或者環境太嘈，可以一鍵派糖鼓勵） -->
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-purple-300">
+                    <span>💡 小貼士：讀得越似、越響亮，攞到嘅糖果就越多㗎！</span>
+                    <button onclick="manualCheerPass()" class="text-amber-300 hover:text-amber-200 underline flex items-center gap-1">
+                        <i class="fas fa-magic"></i> 家長/老師手動獎勵過關
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部各國語言一覽快捷列 (方便小朋友直接點擊預覽或者睇晒所有國家) -->
+    <footer class="relative z-10 w-full max-w-6xl mx-auto px-4 pb-6">
+        <div class="bg-purple-950/70 border border-purple-700/60 rounded-2xl p-3">
+            <div class="text-xs font-bold text-purple-300 mb-2 flex items-center justify-between">
+                <span>🌍 輪盤內嘅 11 個國家語言一覽（亦可以直接點擊練習）：</span>
+                <span class="text-orange-300">已解鎖：<span id="unlockedCount">0</span> / 11 國</span>
+            </div>
+            <div id="languagePills" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-2">
+                <!-- 由 JS 動態生成 -->
+            </div>
+        </div>
+    </footer>
+
+    <!-- 自訂訊息提示框 (取代 alert) -->
+    <div id="toastModal" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden bg-orange-600 border-2 border-yellow-300 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm sm:text-base flex items-center gap-3">
+        <span id="toastEmoji" class="text-2xl">🎃</span>
+        <span id="toastText">訊息提示</span>
+    </div>
+
+    <script>
+        /**
+         * Gemini API 設定 (Canvas 環境會自動注入 API Key)
+         */
+        const apiKey = "";
+
+        /**
+         * 11 個國家語言的「Trick or Treat」資料庫
+         * 已移走廣東話，新增：泰文、意大利文、葡萄牙文、越南文
+         */
+        const LANGUAGES = [
+            {
+                id: 'en',
+                country: '美國 / 英國',
+                langName: '英語 (English)',
+                flag: '🇺🇸',
+                phrase: 'Trick or Treat!',
+                roman: 'Trick or Treat',
+                cantoneseTip: '諧音：「Chu-ik 喔 Chu-it」',
+                bcp47: 'en-US',
+                voiceName: 'Puck',
+                color: '#F97316', // 橙色
+                altMatches: ['trick or treat', 'trick a treat', 'trick treat', 'treat', 'trick']
+            },
+            {
+                id: 'th',
+                country: '泰國',
+                langName: '泰語 (Thai)',
+                flag: '🇹🇭',
+                phrase: 'หลอกหรือเลี้ยง!',
+                roman: 'Lòk rǔue líang!',
+                cantoneseTip: '諧音：「落 呂 靚！」',
+                bcp47: 'th-TH',
+                voiceName: 'Aoede',
+                color: '#9333EA', // 紫色
+                altMatches: ['หลอกหรือเลี้ยง', 'หลอก', 'เลี้ยง', 'lok rue liang', 'lok liang']
+            },
+            {
+                id: 'zh',
+                country: '中國 / 台灣',
+                langName: '普通話 (Mandarin)',
+                flag: '🇨🇳',
+                phrase: '不給糖就搗蛋！',
+                roman: 'Bù gěi táng jiù dǎo dàn',
+                cantoneseTip: '拼音：「Bu Gei Tang Jiu Dao Dan」',
+                bcp47: 'zh-TW',
+                voiceName: 'Kore',
+                color: '#16A34A', // 綠色
+                altMatches: ['不給糖就搗蛋', '不给糖就捣蛋', '給糖', '搗蛋', '不給糖']
+            },
+            {
+                id: 'ja',
+                country: '日本',
+                langName: '日語 (Japanese)',
+                flag: '🇯🇵',
+                phrase: 'トリック・オア・トリート',
+                roman: 'Torikku oa Toriito',
+                cantoneseTip: '諧音：「拖-呢-姑 喔-呀 拖-呢-拖」',
+                bcp47: 'ja-JP',
+                voiceName: 'Leda',
+                color: '#E11D48', // 桃紅色
+                altMatches: ['トリックオアトリート', 'トリック', 'トリート', 'torikku oa toriito', 'trick or treat']
+            },
+            {
+                id: 'ko',
+                country: '韓國',
+                langName: '韓語 (Korean)',
+                flag: '🇰🇷',
+                phrase: '사탕 안 주면 장난칠 거야!',
+                roman: 'Satang an jumyeon jangnanchil geoya',
+                cantoneseTip: '諧音：「沙-吞 晏 朱-miyon 張-難-切 哥-呀」',
+                bcp47: 'ko-KR',
+                voiceName: 'Zephyr',
+                color: '#2563EB', // 藍色
+                altMatches: ['사탕 안 주면 장난칠 거야', '사탕', '장난', '트릭 오어 트릿', 'satang']
+            },
+            {
+                id: 'es',
+                country: '西班牙 / 墨西哥',
+                langName: '西班牙語 (Spanish)',
+                flag: '🇪🇸',
+                phrase: '¡Truco o trato!',
+                roman: 'Truco o trato',
+                cantoneseTip: '諧音：「Chu-ko 喔 Chu-a-to」',
+                bcp47: 'es-ES',
+                voiceName: 'Fenrir',
+                color: '#D97706', // 琥珀黃
+                altMatches: ['truco o trato', 'truco trato', 'truco', 'trato', 'dulce o truco']
+            },
+            {
+                id: 'fr',
+                country: '法國 / 加拿大',
+                langName: '法語 (French)',
+                flag: '🇫🇷',
+                phrase: 'Des bonbons ou un sort !',
+                roman: 'Deh bon-bon oo uhn sor',
+                cantoneseTip: '諧音：「爹 幫-幫 烏 恩 梳」',
+                bcp47: 'fr-FR',
+                voiceName: 'Charon',
+                color: '#7C3AED', // 靛紫色
+                altMatches: ['des bonbons ou un sort', 'bonbons', 'bonbon', 'un sort', 'sort']
+            },
+            {
+                id: 'de',
+                country: '德國',
+                langName: '德語 (German)',
+                flag: '🇩🇪',
+                phrase: 'Süßes oder Saures!',
+                roman: 'Zuu-ses oh-der Zau-res',
+                cantoneseTip: '諧音：「舒-sir-s 喔-da 稍-res」',
+                bcp47: 'de-DE',
+                voiceName: 'Orus',
+                color: '#059669', // 翡翠綠
+                altMatches: ['süßes oder saures', 'suesses oder saures', 'süßes', 'saures']
+            },
+            {
+                id: 'it',
+                country: '意大利',
+                langName: '意大利語 (Italian)',
+                flag: '🇮🇹',
+                phrase: 'Dolcetto o scherzetto!',
+                roman: 'Dol-chet-to o sker-tzet-to',
+                cantoneseTip: '諧音：「Do-che-to 喔 Ske-ze-to」',
+                bcp47: 'it-IT',
+                voiceName: 'Callirrhoe',
+                color: '#0891B2', // 青藍色
+                altMatches: ['dolcetto o scherzetto', 'dolcetto', 'scherzetto']
+            },
+            {
+                id: 'pt',
+                country: '巴西 / 葡萄牙',
+                langName: '葡萄牙語 (Portuguese)',
+                flag: '🇧🇷',
+                phrase: 'Doces ou travessuras!',
+                roman: 'Do-ses oh tra-ve-su-ras',
+                cantoneseTip: '諧音：「Do-ses 喔 ชา-ve-su-ras」',
+                bcp47: 'pt-BR',
+                voiceName: 'Laomedeia',
+                color: '#65A30D', // 青檸綠
+                altMatches: ['doces ou travessuras', 'doces', 'travessuras']
+            },
+            {
+                id: 'vi',
+                country: '越南',
+                langName: '越南語 (Vietnamese)',
+                flag: '🇻🇳',
+                phrase: 'Cho kẹo hay bị ghẹo!',
+                roman: 'Cho keo hai bi gheo',
+                cantoneseTip: '諧音：「Cho 嘅-o 嗨 鼻 嘅-o」',
+                bcp47: 'vi-VN',
+                voiceName: 'Sadachbia',
+                color: '#DB2777', // 亮粉紅
+                altMatches: ['cho kẹo hay bị ghẹo', 'cho keo hay bi gheo', 'cho kẹo', 'bị ghẹo']
+            }
+        ];
+
+        // 遊戲狀態變數
+        let currentRotation = 0;       // 輪盤目前角度 (弧度)
+        let isSpinning = false;        // 輪盤是否轉動中
+        let selectedLang = null;       // 目前抽中的語言物件
+        let candyTotal = 0;            // 累計糖果數
+        let challengerTotal = 0;       // 累計已挑戰小朋友人次
+        let unlockedIds = new Set();   // 已挑戰成功的國家
+        let soundEnabled = true;       // 音效開關
+        let ttsAudioCache = {};        // 快取已生成的 Gemini TTS 音訊 URL
+        let isPlayingAudio = false;    // 是否正在播放示範語音
+
+        // 收音與錄音相關變數
+        let isRecording = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let lastRecordedBlob = null;
+        let lastRecordedUrl = null;
+        let speechRecognition = null;
+        let recognitionTranscript = '';
+        let recognitionConfidence = 0;
+        let recordingTimeout = null;
+
+        // Web Audio API 合成音效器
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // 播放輪盤格仔滴答聲
+        function playTickSound() {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(520, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.045);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.045);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch (e) {}
+        }
+
+        // 播放抽中結果或過關歡呼音效
+        function playCelebrationSound(type = 'win') {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const notes = type === 'win' ? [523.25, 659.25, 783.99, 1046.5] : [392.00, 523.25, 659.25];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.09);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.09 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + idx * 0.09);
+                    osc.stop(ctx.currentTime + idx * 0.09 + 0.26);
+                });
+            } catch (e) {}
+        }
+
+        function toggleSoundEffects() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = soundEnabled ? 'fas fa-volume-up text-lg' : 'fas fa-volume-mute text-lg text-slate-400';
+            showToast(soundEnabled ? '已開啟遊戲音效 🔊' : '已靜音遊戲音效 🔇', '🎃');
+        }
+
+        /**
+         * 繪製萬聖節多國語言輪盤
+         */
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const size = Math.max(280, Math.floor(rect.width - 24));
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size / 2 - 4;
+            const sliceAngle = (2 * Math.PI) / LANGUAGES.length;
+
+            ctx.clearRect(0, 0, size, size);
+
+            LANGUAGES.forEach((item, index) => {
+                const startAngle = currentRotation + index * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+
+                // 扇形底色
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                // 扇形邊框
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#1e1b4b';
+                ctx.stroke();
+
+                // 繪製文字與國旗
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+
+                // 國旗 Emoji (適應 11 個扇形的比例)
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                const fontSizeFlag = Math.max(16, Math.floor(size * 0.062));
+                ctx.font = `${fontSizeFlag}px sans-serif`;
+                ctx.fillText(item.flag, radius - 12, 0);
+
+                // 語言名稱
+                const fontSizeText = Math.max(11, Math.floor(size * 0.034));
+                ctx.font = `900 ${fontSizeText}px "Noto Sans TC", sans-serif`;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 4;
+                const shortName = item.langName.split(' ')[0];
+                ctx.fillText(shortName, radius - 16 - fontSizeFlag, 0);
+
+                ctx.restore();
+            });
+
+            // 外圈裝飾圓點 (燈泡感)
+            const totalDots = 24;
+            for (let i = 0; i < totalDots; i++) {
+                const angle = (i * 2 * Math.PI) / totalDots + currentRotation * 0.5;
+                const dotX = centerX + (radius - 5) * Math.cos(angle);
+                const dotY = centerY + (radius - 5) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, 3.5, 0, 2 * Math.PI);
+                ctx.fillStyle = i % 2 === 0 ? '#FEF08A' : '#FFFFFF';
+                ctx.fill();
+            }
+        }
+
+        /**
+         * 轉動輪盤動畫
+         */
+        function spinWheel() {
+            if (isSpinning) return;
+            if (isRecording) stopRecordingProcess();
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('centerSpinBtn').disabled = true;
+            document.getElementById('statusBadge').textContent = '輪盤轉動中...睇下抽中邊個國家！';
+
+            const sliceAngle = (2 * Math.PI) / LANGUAGES.length;
+            // 隨機旋轉 5 到 8 圈 + 隨機角度
+            const extraSpins = (5 + Math.random() * 3) * 2 * Math.PI;
+            const startRotation = currentRotation;
+            const targetRotation = startRotation + extraSpins;
+            const duration = 3800; // 3.8 秒
+            const startTime = performance.now();
+            let lastTickSlice = -1;
+
+            function animateSpin(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Cubic ease-out 緩動公式
+                const easeOut = 1 - Math.pow(1 - progress, 3.5);
+
+                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+                drawWheel();
+
+                // 計算目前經過頂部指針 (-PI/2) 的扇形索引以播放滴答聲
+                const pointerAngle = (1.5 * Math.PI - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                const currentSliceIndex = Math.floor(pointerAngle / sliceAngle) % LANGUAGES.length;
+
+                if (currentSliceIndex !== lastTickSlice) {
+                    lastTickSlice = currentSliceIndex;
+                    playTickSound();
+                    // 指針微晃效果
+                    const pointer = document.getElementById('wheelPointer');
+                    pointer.style.transform = 'rotate(-14deg)';
+                    setTimeout(() => { pointer.style.transform = 'rotate(0deg)'; }, 60);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('centerSpinBtn').disabled = false;
+                    // 決定最終抽中的語言
+                    const finalPointerAngle = (1.5 * Math.PI - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    const winningIndex = Math.floor(finalPointerAngle / sliceAngle) % LANGUAGES.length;
+                    selectLanguage(LANGUAGES[winningIndex], true);
+                }
+            }
+
+            requestAnimationFrame(animateSpin);
+        }
+
+        function pickRandomDirectly() {
+            if (isSpinning) return;
+            const randomIndex = Math.floor(Math.random() * LANGUAGES.length);
+            selectLanguage(LANGUAGES[randomIndex], true);
+        }
+
+        /**
+         * 當抽出某個語言後更新介面
+         */
+        function selectLanguage(langObj, autoPlaySound = false) {
+            selectedLang = langObj;
+            playCelebrationSound('select');
+
+            document.getElementById('langFlag').textContent = langObj.flag;
+            document.getElementById('langCountry').textContent = `📍 抽中地點：${langObj.country}`;
+            document.getElementById('langName').textContent = langObj.langName;
+            document.getElementById('langPhrase').textContent = langObj.phrase;
+            document.getElementById('langRoman').textContent = `🔤 拼音讀法：${langObj.roman}`;
+            document.getElementById('langTip').textContent = `💡 ${langObj.cantoneseTip}`;
+            document.getElementById('statusBadge').textContent = `已抽出【${langObj.langName}】！先聽讀音再跟讀啦！`;
+
+            // 啟用按鈕
+            document.getElementById('listenBtn').disabled = false;
+            document.getElementById('listenSlowBtn').disabled = false;
+            document.getElementById('recordBtn').disabled = false;
+
+            // 重設評分區
+            resetFeedbackUI();
+            renderLanguagePills();
+
+            // 如果係轉動輪盤抽出，貼心自動播放一次發音俾小朋友聽
+            if (autoPlaySound) {
+                setTimeout(() => {
+                    playTargetLanguageAudio(false);
+                }, 350);
+            }
+        }
+
+        function resetFeedbackUI() {
+            document.getElementById('scoreNumber').textContent = '--';
+            document.getElementById('starRating').textContent = '★★★';
+            document.getElementById('starRating').className = 'text-2xl tracking-widest text-slate-600 mb-1';
+            document.getElementById('feedbackTitle').textContent = '聽完讀音後，撳「2. 跟讀」大聲講一次！';
+            document.getElementById('heardTranscript').textContent = '🎙️ 收音內容：等待小朋友發音...';
+            document.getElementById('scoreBar').style.width = '0%';
+        }
+
+        /**
+         * 將 Gemini TTS 回傳的 Base64 PCM16 轉換為可播放的 WAV Blob
+         */
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate = 24000) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+            const blockAlign = (numChannels * bitsPerSample) / 8;
+            const dataSize = pcm16.length * 2;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, str) => {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        /**
+         * 播放選中語言的「Trick or Treat」發音
+         * 結合瀏覽器即時語音 + Gemini TTS 高品質自然語音
+         */
+        async function playTargetLanguageAudio(isSlow = false) {
+            if (!selectedLang || isPlayingAudio) return;
+
+            const listenBtn = document.getElementById('listenBtn');
+            const listenBtnText = document.getElementById('listenBtnText');
+            const listenIcon = document.getElementById('listenIcon');
+
+            isPlayingAudio = true;
+            listenIcon.className = 'fas fa-spinner fa-spin text-xl';
+            listenBtnText.textContent = isSlow ? '慢速播放中...' : '正在發音...';
+
+            const cacheKey = `${selectedLang.id}_${isSlow ? 'slow' : 'normal'}`;
+
+            try {
+                // 如果已經快取過 Gemini TTS 音檔，直接播放
+                if (ttsAudioCache[cacheKey]) {
+                    await playAudioUrl(ttsAudioCache[cacheKey], isSlow ? 0.85 : 1.0);
+                    resetListenButton();
+                    return;
+                }
+
+                // 優先嘗試呼叫 Gemini 2.5 Flash Preview TTS 產生超生動萬聖節兒童語音
+                const speedInstruction = isSlow
+                    ? 'Speak slowly, clearly, syllable by syllable for a young child to repeat'
+                    : 'Speak cheerfully and enthusiastically with a fun Halloween vibe for kids';
+
+                const ttsPrompt = `${speedInstruction} in ${selectedLang.langName}: "${selectedLang.phrase}"`;
+                const payload = {
+                    contents: [{ parts: [{ text: ttsPrompt }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: selectedLang.voiceName || "Puck" }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }, 2);
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType || 'audio/L16;rate=24000';
+
+                if (audioData) {
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                    const pcmBuffer = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmBuffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    ttsAudioCache[cacheKey] = audioUrl;
+                    await playAudioUrl(audioUrl, 1.0);
+                    resetListenButton();
+                    return;
+                }
+                throw new Error('Fallback to browser SpeechSynthesis');
+            } catch (err) {
+                // 使用瀏覽器內建 SpeechSynthesis 作為即時零延遲備援
+                speakWithBrowserTTS(selectedLang.phrase, selectedLang.bcp47, isSlow ? 0.65 : 0.92);
+                resetListenButton();
+            }
+        }
+
+        function playAudioUrl(url, playbackRate = 1.0) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio(url);
+                audio.playbackRate = playbackRate;
+                audio.onended = () => resolve();
+                audio.onerror = (e) => reject(e);
+                audio.play().catch(reject);
+            });
+        }
+
+        function speakWithBrowserTTS(text, langCode, rate = 0.9) {
+            if (!('speechSynthesis' in window)) {
+                showToast('瀏覽器唔支援語音播放，請睇拼音跟讀！', '⚠️');
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = langCode;
+            utter.rate = rate;
+            utter.pitch = 1.1;
+
+            const voices = window.speechSynthesis.getVoices();
+            const matchedVoice = voices.find(v => v.lang.toLowerCase().includes(langCode.split('-')[0].toLowerCase()));
+            if (matchedVoice) utter.voice = matchedVoice;
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        function resetListenButton() {
+            isPlayingAudio = false;
+            document.getElementById('listenIcon').className = 'fas fa-volume-up text-xl';
+            document.getElementById('listenBtnText').textContent = '1. 聽標準讀法';
+        }
+
+        /**
+         * 啟動或停止麥克風收音，聆聽小朋友覆讀
+         */
+        async function toggleRecording() {
+            if (!selectedLang) {
+                showToast('請先轉動輪盤抽出一個語言先！', '🎃');
+                return;
+            }
+            if (isRecording) {
+                stopRecordingProcess();
+            } else {
+                await startRecordingProcess();
+            }
+        }
+
+        async function startRecordingProcess() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+
+                isRecording = true;
+                recordedChunks = [];
+                recognitionTranscript = '';
+                recognitionConfidence = 0;
+
+                // 更新按鈕外觀為錄音中
+                const recordBtn = document.getElementById('recordBtn');
+                const recordIcon = document.getElementById('recordIcon');
+                const recordBtnText = document.getElementById('recordBtnText');
+
+                recordBtn.classList.add('recording-pulse', 'from-red-500', 'to-rose-600');
+                recordBtn.classList.remove('from-emerald-500', 'to-green-600');
+                recordIcon.className = 'fas fa-stop-circle text-xl';
+                recordBtnText.textContent = '收音中...講完請撳停';
+
+                document.getElementById('feedbackTitle').textContent = `🎙️ 請大聲講出：「${selectedLang.phrase}」`;
+                document.getElementById('heardTranscript').textContent = '正在聆聽小朋友嘅聲音...';
+
+                // 1. 同時啟動瀏覽器 SpeechRecognition (如果支援)
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    try {
+                        speechRecognition = new SpeechRecognition();
+                        speechRecognition.lang = selectedLang.bcp47;
+                        speechRecognition.interimResults = true;
+                        speechRecognition.maxAlternatives = 3;
+
+                        speechRecognition.onresult = (event) => {
+                            let interim = '';
+                            for (let i = event.resultIndex; i < event.results.length; i++) {
+                                const transcript = event.results[i][0].transcript;
+                                if (event.results[i].isFinal) {
+                                    recognitionTranscript += transcript;
+                                    recognitionConfidence = event.results[i][0].confidence || 0.85;
+                                } else {
+                                    interim += transcript;
+                                }
+                            }
+                            const currentText = recognitionTranscript || interim;
+                            if (currentText) {
+                                document.getElementById('heardTranscript').textContent = `🎙️ 聽到你講：「${currentText}」`;
+                            }
+                        };
+                        speechRecognition.start();
+                    } catch (e) {}
+                }
+
+                // 2. 啟動 MediaRecorder 錄下聲音（用於重播自己把聲 & 送交 Gemini 多模態語音評分）
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    if (recordedChunks.length > 0) {
+                        lastRecordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        if (lastRecordedUrl) URL.revokeObjectURL(lastRecordedUrl);
+                        lastRecordedUrl = URL.createObjectURL(lastRecordedBlob);
+                        document.getElementById('replayChildBtn').classList.remove('hidden');
+                    }
+                    await evaluatePronunciation();
+                };
+
+                mediaRecorder.start();
+
+                // 最多收音 4.5 秒自動停止，方便小朋友唔記得撳停
+                recordingTimeout = setTimeout(() => {
+                    if (isRecording) {
+                        stopRecordingProcess();
+                    }
+                }, 4500);
+
+            } catch (err) {
+                showToast('無法開啟麥克風，請允許瀏覽器使用麥克風權限！', '🎤');
+            }
+        }
+
+        function stopRecordingProcess() {
+            if (!isRecording) return;
+            isRecording = false;
+            clearTimeout(recordingTimeout);
+
+            const recordBtn = document.getElementById('recordBtn');
+            const recordIcon = document.getElementById('recordIcon');
+            const recordBtnText = document.getElementById('recordBtnText');
+
+            recordBtn.classList.remove('recording-pulse', 'from-red-500', 'to-rose-600');
+            recordBtn.classList.add('from-emerald-500', 'to-green-600');
+            recordIcon.className = 'fas fa-microphone text-xl';
+            recordBtnText.textContent = '2. 再試一次跟讀';
+
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (e) {}
+            }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        }
+
+        function replayRecordedVoice() {
+            if (!lastRecordedUrl) return;
+            const audio = new Audio(lastRecordedUrl);
+            audio.play();
+        }
+
+        /**
+         * 評估小朋友覆讀的準確度
+         * 優先結合：
+         * 1. Gemini Flash 語音聽力評分 (直接聽錄音 Blob 判斷小朋友讀得幾似，對外語同埋小朋友聲線最準確)
+         * 2. 瀏覽器語音辨識字串相似度 (Levenshtein 距離演算法)
+         */
+        async function evaluatePronunciation() {
+            document.getElementById('feedbackTitle').textContent = '🧙‍♀️ 萬聖節魔法評審正在聽緊你嘅讀音...';
+
+            // 先計算本地語音辨識分數 (如有收到字)
+            let localScore = 0;
+            if (recognitionTranscript.trim().length > 0) {
+                localScore = calculateSimilarityScore(recognitionTranscript, selectedLang);
+            }
+
+            // 嘗試將錄音交由 Gemini 3 Flash 進行兒童友善的發音準確度評估
+            if (lastRecordedBlob && lastRecordedBlob.size > 500) {
+                try {
+                    const base64Audio = await blobToBase64(lastRecordedBlob);
+                    const aiEvaluation = await evaluateAudioWithGemini(base64Audio, lastRecordedBlob.type || 'audio/webm', selectedLang);
+                    if (aiEvaluation && typeof aiEvaluation.accuracyScore === 'number') {
+                        const finalScore = Math.max(localScore, aiEvaluation.accuracyScore);
+                        displayScoreAndReward(
+                            finalScore,
+                            aiEvaluation.heardText || recognitionTranscript || selectedLang.phrase,
+                            aiEvaluation.encouragement
+                        );
+                        return;
+                    }
+                } catch (e) {
+                    // 若網路或 API 發生問題，自動切換至本地評分邏輯
+                }
+            }
+
+            // 本地備援評分邏輯
+            if (localScore > 0) {
+                displayScoreAndReward(localScore, recognitionTranscript);
+            } else if (lastRecordedBlob && lastRecordedBlob.size > 1500) {
+                // 如果瀏覽器無該外語包，但小朋友確實有對住咪大聲講嘢，給予鼓勵性高分
+                const cheerfulScore = Math.floor(78 + Math.random() * 18);
+                displayScoreAndReward(cheerfulScore, `${selectedLang.phrase} (聲音響亮！)`, '好叻呀！把聲好響亮，發音好有萬聖節氣氛！');
+            } else {
+                displayScoreAndReward(0, '未聽到聲音', '聽唔清楚喔，試下貼近少少個咪，大聲讀出嚟啦！');
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function evaluateAudioWithGemini(base64Audio, mimeType, langObj) {
+            const cleanMime = mimeType.split(';')[0] || 'audio/webm';
+            const prompt = `You are an encouraging Halloween game pronunciation judge for young children in Hong Kong.
+The child is trying to repeat the "${langObj.langName}" Halloween phrase: "${langObj.phrase}" (Romanization: "${langObj.roman}").
+Listen to the audio recording and evaluate how closely the child attempted to say "${langObj.phrase}".
+Be generous and encouraging to kids! If they made a genuine attempt at the syllables, give between 75 and 100. If silent or completely unrelated noise, give 0 to 30.
+Respond in JSON with:
+- "accuracyScore": integer from 0 to 100
+- "heardText": what it sounded like the child said (in target script or romanization)
+- "encouragement": a short, super cheerful 1-sentence feedback in Cantonese (Traditional Chinese) for the child.`;
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: prompt },
+                        {
+                            inlineData: {
+                                mimeType: cleanMime,
+                                data: base64Audio
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            accuracyScore: { type: "INTEGER" },
+                            heardText: { type: "STRING" },
+                            encouragement: { type: "STRING" }
+                        },
+                        propertyOrdering: ["accuracyScore", "heardText", "encouragement"]
+                    }
+                }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const response = await fetchWithRetry(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }, 2);
+
+            const result = await response.json();
+            const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            return jsonText ? JSON.parse(jsonText) : null;
+        }
+
+        /**
+         * 字串相似度計算 (支援原文、羅馬拼音及常見近似詞)
+         */
+        function calculateSimilarityScore(spoken, langObj) {
+            const clean = (str) => str.toLowerCase().replace(/[.,!¡?¿・\s\-]/g, '');
+            const s = clean(spoken);
+            if (!s) return 0;
+
+            const targets = [
+                clean(langObj.phrase),
+                clean(langObj.roman),
+                ...langObj.altMatches.map(clean)
+            ];
+
+            let bestRatio = 0;
+            for (const t of targets) {
+                if (!t) continue;
+                if (s.includes(t) || t.includes(s)) {
+                    bestRatio = Math.max(bestRatio, 0.92);
+                }
+                const dist = levenshteinDistance(s, t);
+                const maxLen = Math.max(s.length, t.length);
+                const ratio = maxLen === 0 ? 1 : (maxLen - dist) / maxLen;
+                if (ratio > bestRatio) bestRatio = ratio;
+            }
+
+            // 針對小朋友給予友善加權
+            const boosted = Math.min(100, Math.round(bestRatio * 115));
+            return boosted;
+        }
+
+        function levenshteinDistance(a, b) {
+            const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+            for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+            for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+            for (let i = 1; i <= a.length; i++) {
+                for (let j = 1; j <= b.length; j++) {
+                    const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + cost
+                    );
+                }
+            }
+            return matrix[a.length][b.length];
+        }
+
+        /**
+         * 顯示準確度分數、星星與派發萬聖節糖果獎勵
+         */
+        function displayScoreAndReward(score, heardText, customMessage = '') {
+            const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
+            document.getElementById('scoreNumber').textContent = clampedScore;
+            document.getElementById('scoreBar').style.width = `${clampedScore}%`;
+            document.getElementById('heardTranscript').textContent = `🎙️ 收音辨識：「${heardText}」`;
+
+            const starEl = document.getElementById('starRating');
+            const titleEl = document.getElementById('feedbackTitle');
+
+            if (clampedScore >= 80) {
+                starEl.textContent = '⭐⭐⭐';
+                starEl.className = 'text-2xl tracking-widest text-yellow-400 mb-1 animate-bounce';
+                titleEl.textContent = customMessage || '🎉 超級準確！你係語言小天才！獎勵 3 粒萬聖節糖果！';
+                addCandies(3);
+                addChallengerCount();
+                unlockLanguage(selectedLang.id);
+                playCelebrationSound('win');
+                spawnCandyRain(18);
+            } else if (clampedScore >= 50) {
+                starEl.textContent = '⭐⭐☆';
+                starEl.className = 'text-2xl tracking-widest text-amber-300 mb-1';
+                titleEl.textContent = customMessage || '👍 讀得幾好喎！好接近喇，獎勵你 2 粒糖果！';
+                addCandies(2);
+                addChallengerCount();
+                unlockLanguage(selectedLang.id);
+                playCelebrationSound('win');
+                spawnCandyRain(10);
+            } else if (clampedScore > 0) {
+                starEl.textContent = '⭐☆☆';
+                starEl.className = 'text-2xl tracking-widest text-orange-300 mb-1';
+                titleEl.textContent = customMessage || '💪 勇敢嘗試！獎勵 1 粒糖果，可以聽一次「慢速讀」再挑戰！';
+                addCandies(1);
+                addChallengerCount();
+                spawnCandyRain(5);
+            } else {
+                starEl.textContent = '☆☆☆';
+                starEl.className = 'text-2xl tracking-widest text-slate-500 mb-1';
+                titleEl.textContent = customMessage || '🎙️ 聽唔到聲音呀，請再撳「跟讀」大聲講一次啦！';
+            }
+        }
+
+        function manualCheerPass() {
+            if (!selectedLang) {
+                showToast('請先轉動輪盤抽出一個國家語言先！', '🎃');
+                return;
+            }
+            displayScoreAndReward(95, selectedLang.phrase, '🌟 好叻呀！成功講出外語 Trick or Treat！獎勵 3 粒糖果！');
+        }
+
+        function addCandies(amount) {
+            candyTotal += amount;
+            const countEl = document.getElementById('candyCount');
+            countEl.textContent = candyTotal;
+        }
+
+        function addChallengerCount() {
+            challengerTotal += 1;
+            const challengerEl = document.getElementById('challengerCount');
+            if (challengerEl) {
+                challengerEl.textContent = challengerTotal;
+            }
+        }
+
+        function unlockLanguage(langId) {
+            unlockedIds.add(langId);
+            document.getElementById('unlockedCount').textContent = unlockedIds.size;
+            renderLanguagePills();
+        }
+
+        /**
+         * 漫天糖果掉落特效
+         */
+        function spawnCandyRain(count = 15) {
+            const emojis = ['🍬', '🍭', '🍫', '🎃', '👻', '⭐'];
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'candy-particle';
+                el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = `${Math.random() * 94 + 3}vw`;
+                el.style.animationDuration = `${1.8 + Math.random() * 1.4}s`;
+                el.style.animationDelay = `${Math.random() * 0.4}s`;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 3500);
+            }
+        }
+
+        /**
+         * 渲染底部 8 個國家語言快捷卡片
+         */
+        function renderLanguagePills() {
+            const container = document.getElementById('languagePills');
+            if (!container) return;
+            container.innerHTML = '';
+
+            LANGUAGES.forEach((item) => {
+                const isSelected = selectedLang && selectedLang.id === item.id;
+                const isUnlocked = unlockedIds.has(item.id);
+
+                const btn = document.createElement('button');
+                btn.onclick = () => selectLanguage(item, true);
+                btn.className = `p-2 rounded-xl border text-left transition flex items-center gap-2 ${
+                    isSelected
+                        ? 'bg-orange-500/30 border-yellow-300 scale-105 shadow-md'
+                        : 'bg-indigo-950/60 border-purple-700/60 hover:bg-purple-900/60'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="text-2xl">${item.flag}</span>
+                    <div class="overflow-hidden flex-1">
+                        <div class="text-xs font-black text-white truncate">${item.langName.split(' ')[0]}</div>
+                        <div class="text-[10px] text-purple-300 truncate">${isUnlocked ? '✅ 已挑戰' : '點擊練習'}</div>
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        /**
+         * 顯示非阻斷式訊息提示 (取代 alert)
+         */
+        let toastTimer = null;
+        function showToast(message, emoji = '🎃') {
+            const modal = document.getElementById('toastModal');
+            document.getElementById('toastText').textContent = message;
+            document.getElementById('toastEmoji').textContent = emoji;
+            modal.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 3000);
+        }
+
+        /**
+         * 指數退避重試 Fetch 工具
+         */
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return res;
+                } catch (err) {}
+                if (i < retries - 1) {
+                    await new Promise(r => setTimeout(r, delay * Math.pow(2, i)));
+                }
+            }
+            throw new Error('Request failed after retries');
+        }
+
+        // 視窗大小改變時重繪輪盤
+        window.addEventListener('resize', () => {
+            drawWheel();
+        });
+
+        // 初始化遊戲
+        window.onload = function () {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+            drawWheel();
+            renderLanguagePills();
+        };
+    </script>
+</body>
+</html>
